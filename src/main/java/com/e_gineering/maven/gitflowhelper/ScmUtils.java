@@ -30,16 +30,15 @@ class ScmUtils {
     private static final String DEFAULT_URL_EXPRESSION = "${env.GIT_URL}";
     private static final String DEFAULT_BRANCH_EXPRESSION = "${env.GIT_BRANCH}";
 
-    private Properties systemEnvVars;
-    private ScmManager scmManager;
-    private MavenProject project;
-    private Log log;
-    private String masterBranchPattern;
-    private String supportBranchPattern;
-    private String releaseBranchPattern;
-    private String hotfixBranchPattern;
-    private String developmentBranchPattern;
-    private String featureOrBugfixBranchPattern;
+    private final Properties systemEnvVars;
+    private final ScmManager scmManager;
+    private final MavenProject project;
+    private final Log log;
+    private final String masterBranchPattern;
+    private final String supportBranchPattern;
+    private final String releaseBranchPattern;
+    private final String hotfixBranchPattern;
+    private final String developmentBranchPattern;
 
     public ScmUtils(final Properties systemEnvVars, final ScmManager scmManager, final MavenProject project, final Log log,
                     final String masterBranchPattern, final String supportBranchPattern, final String releaseBranchPattern,
@@ -54,7 +53,6 @@ class ScmUtils {
         this.releaseBranchPattern = releaseBranchPattern;
         this.hotfixBranchPattern = hotfixBranchPattern;
         this.developmentBranchPattern = developmentBranchPattern;
-        this.featureOrBugfixBranchPattern = featureOrBugfixBranchPattern;
     }
 
     /**
