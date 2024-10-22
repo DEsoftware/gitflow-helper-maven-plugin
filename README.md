@@ -184,6 +184,18 @@ The following properties are set:
 
 * `branchType`: The type of the branch
 * `branchName`: The name of the branch
+* `commitId`: SHA-1 of the commit of the HEAD of the branch
+* `commitIdShort`: Short SHA-1 of the commit of the HEAD of the branch
+
+The following properties change the behavior of this goal:
+
+| Property              | Default Value | Description                                                                                                                                                                                                        |
+|-----------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| branchTypeProperty    | branchType    | Name of the Maven property where the branch type is stored.                                                                                                                                                        |   
+| branchNameProperty    | branchName    | Name of the Maven property where the branch name is stored.                                                                                                                                                        |
+| commitIdProperty      | commitId      | Name of the Maven property where the commit ID (SHA-1) of the HEAD of the branch is stored.                                                                                                                        |
+| commitIdShortProperty | commitIdShort | Name of the Maven property where the short commit ID (SHA-1) of the HEAD of the branch is stored. The short commit ID contains the first n-characters of the commit ID (n can be defined in `commitIdShortLength`) |
+| commitIdShortLength   | 8             | Length of the short commit ID.                                                                                                                                                                                     |
 
 ### Mapping Git branch name
 

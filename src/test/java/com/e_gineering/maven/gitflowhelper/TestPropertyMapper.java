@@ -25,7 +25,7 @@ public class TestPropertyMapper
         mapper.setLanguage("java");
         mapper.setMapper(ToLowerCaseMapper.class.getName());
 
-        GitBranchInfo info = new GitBranchInfo("FOO", GitBranchType.DEVELOPMENT, "bar");
+        GitBranchInfo info = new GitBranchInfo("FOO", GitBranchType.DEVELOPMENT, "bar", "sha");
 
         Assert.assertEquals("foo", mapper.map(info));
     }
@@ -46,7 +46,7 @@ public class TestPropertyMapper
             + "}"
         );
 
-        GitBranchInfo info = new GitBranchInfo("FOO", GitBranchType.DEVELOPMENT, "bar");
+        GitBranchInfo info = new GitBranchInfo("FOO", GitBranchType.DEVELOPMENT, "bar", "sha");
 
         Assert.assertEquals("foo", mapper.map(info));
 
@@ -65,31 +65,31 @@ public class TestPropertyMapper
 
         mapper.setMapper(IOUtils.toString(getClass().getResource("PropertyMapperBranchNameToDockerName.groovy"), StandardCharsets.UTF_8));
 
-        Assert.assertEquals("", mapper.map(new GitBranchInfo("", GitBranchType.OTHER, "")));
+        Assert.assertEquals("", mapper.map(new GitBranchInfo("", GitBranchType.OTHER, "", "sha")));
 
-        Assert.assertEquals("foo", mapper.map(new GitBranchInfo("FOO", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_f", mapper.map(new GitBranchInfo("F_f", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ae", mapper.map(new GitBranchInfo("F_ä", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ae", mapper.map(new GitBranchInfo("F_Ä", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_oe", mapper.map(new GitBranchInfo("F_ö", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_oe", mapper.map(new GitBranchInfo("F_Ö", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ue", mapper.map(new GitBranchInfo("F_ü", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ue", mapper.map(new GitBranchInfo("F_Ü", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ss", mapper.map(new GitBranchInfo("F_ß", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f_ss", mapper.map(new GitBranchInfo("F_ß", GitBranchType.OTHER, "")));
+        Assert.assertEquals("foo", mapper.map(new GitBranchInfo("FOO", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_f", mapper.map(new GitBranchInfo("F_f", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ae", mapper.map(new GitBranchInfo("F_ä", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ae", mapper.map(new GitBranchInfo("F_Ä", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_oe", mapper.map(new GitBranchInfo("F_ö", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_oe", mapper.map(new GitBranchInfo("F_Ö", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ue", mapper.map(new GitBranchInfo("F_ü", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ue", mapper.map(new GitBranchInfo("F_Ü", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ss", mapper.map(new GitBranchInfo("F_ß", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f_ss", mapper.map(new GitBranchInfo("F_ß", GitBranchType.OTHER, "", "sha")));
 
-        Assert.assertEquals("f__", mapper.map(new GitBranchInfo("F_!", GitBranchType.OTHER, "")));
-        Assert.assertEquals("f__a_", mapper.map(new GitBranchInfo("F__!", GitBranchType.OTHER, "")));
+        Assert.assertEquals("f__", mapper.map(new GitBranchInfo("F_!", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("f__a_", mapper.map(new GitBranchInfo("F__!", GitBranchType.OTHER, "", "sha")));
 
-        Assert.assertEquals("a_f", mapper.map(new GitBranchInfo("_f", GitBranchType.OTHER, "")));
-        Assert.assertEquals("a__a_", mapper.map(new GitBranchInfo("___", GitBranchType.OTHER, "")));
+        Assert.assertEquals("a_f", mapper.map(new GitBranchInfo("_f", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("a__a_", mapper.map(new GitBranchInfo("___", GitBranchType.OTHER, "", "sha")));
 
-        Assert.assertEquals("a.a", mapper.map(new GitBranchInfo(".a", GitBranchType.OTHER, "")));
-        Assert.assertEquals("a-a", mapper.map(new GitBranchInfo("-a", GitBranchType.OTHER, "")));
-        Assert.assertEquals("a_a", mapper.map(new GitBranchInfo("_a", GitBranchType.OTHER, "")));
+        Assert.assertEquals("a.a", mapper.map(new GitBranchInfo(".a", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("a-a", mapper.map(new GitBranchInfo("-a", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("a_a", mapper.map(new GitBranchInfo("_a", GitBranchType.OTHER, "", "sha")));
 
-        Assert.assertEquals("a__a", mapper.map(new GitBranchInfo("__a", GitBranchType.OTHER, "")));
-        Assert.assertEquals("a---a", mapper.map(new GitBranchInfo("---a", GitBranchType.OTHER, "")));
+        Assert.assertEquals("a__a", mapper.map(new GitBranchInfo("__a", GitBranchType.OTHER, "", "sha")));
+        Assert.assertEquals("a---a", mapper.map(new GitBranchInfo("---a", GitBranchType.OTHER, "", "sha")));
     }
 
 
