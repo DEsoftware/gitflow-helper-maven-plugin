@@ -9,12 +9,11 @@ public class GitBranchInfoTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitNoNameParams() {
-		new GitBranchInfo(null, GitBranchType.MASTER, null);
+		new GitBranchInfo(null, GitBranchType.MASTER, null, "");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitNoTypeParams() {
-		new GitBranchInfo("origin/release", null, null);
+		new GitBranchInfo("origin/release", null, null, "");
 	}
-
 }

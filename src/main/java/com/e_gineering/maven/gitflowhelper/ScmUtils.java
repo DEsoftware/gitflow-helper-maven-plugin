@@ -30,16 +30,15 @@ class ScmUtils {
     private static final String DEFAULT_URL_EXPRESSION = "${env.GIT_URL}";
     private static final String DEFAULT_BRANCH_EXPRESSION = "${env.GIT_BRANCH}";
 
-    private Properties systemEnvVars;
-    private ScmManager scmManager;
-    private MavenProject project;
-    private Log log;
-    private String masterBranchPattern;
-    private String supportBranchPattern;
-    private String releaseBranchPattern;
-    private String hotfixBranchPattern;
-    private String developmentBranchPattern;
-    private String featureOrBugfixBranchPattern;
+    private final Properties systemEnvVars;
+    private final ScmManager scmManager;
+    private final MavenProject project;
+    private final Log log;
+    private final String masterBranchPattern;
+    private final String supportBranchPattern;
+    private final String releaseBranchPattern;
+    private final String hotfixBranchPattern;
+    private final String developmentBranchPattern;
 
     public ScmUtils(final Properties systemEnvVars, final ScmManager scmManager, final MavenProject project, final Log log,
                     final String masterBranchPattern, final String supportBranchPattern, final String releaseBranchPattern,
@@ -54,7 +53,6 @@ class ScmUtils {
         this.releaseBranchPattern = releaseBranchPattern;
         this.hotfixBranchPattern = hotfixBranchPattern;
         this.developmentBranchPattern = developmentBranchPattern;
-        this.featureOrBugfixBranchPattern = featureOrBugfixBranchPattern;
     }
 
     /**
@@ -96,71 +94,76 @@ class ScmUtils {
 
         String connectionUrl = resolveUrlOrExpression(project);
 
-        try {
-            ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
-            if (!GitScmProviderRepository.PROTOCOL_GIT.equals(scmManager.getProviderByRepository(repository).getScmType())) {
-                throw new ScmException("Unable to resolve branches from non-git <scm> definitions.");
-            }
 
-            // We know it's a GIT repo...
-            GitScmProviderRepository gitScmProviderRepository = (GitScmProviderRepository) repository.getProviderRepository();
-
-            ScmFileSet fileSet = new ScmFileSet(project.getBasedir());
-            ScmLogDispatcher scmLogger = new ScmLogDispatcher();
+            String sha1 = null;
 
             try {
-                branchNameOrExpression = GitBranchCommand.getCurrentBranch(scmLogger, gitScmProviderRepository, fileSet);
-            } catch (ScmException scme) {
-                log.debug("Exception attempting to resolve a local branch. Attempting detached HEAD resolution");
-
-                // Try to resolve a detached HEAD to a single branch.
-                // If we have more than one branch resolving, make sure they're the same type.
-                // If there are more than one _type_ of branch resolved for the detached HEAD, then we'll need to
-                // fall back to the branchNameOrExpression (to resolve via environment properties).
-
-                // Do a rev-parse to get the commit hash that HEAD points to
-                String sha1 = sha1ForHEAD(scmLogger, fileSet);
-                log.debug("HEAD is pointing at " + sha1);
-
-                // Now use show-ref to determine the branches that HEAD's sha1 points to.
-                Set<String> branches = branchesForSha1(sha1, scmLogger, fileSet);
-                log.debug("Found the following branches for " + sha1 + ": " + branches);
-
-                // State tracking as we loop
-                GitBranchType type = null;
-                String name = null;
-
-                for (String candidateName : branches) {
-                    GitBranchType candidateType = resolveBranchType(candidateName).getType();
-                    // First iteration of a resolved type.
-                    if (type == null){
-                        type = candidateType;
-                        name = candidateName; // Use the first name we get.
-                        continue;
-                    }
-
-                    // A subsequent branch which resolved.
-                    if (candidateType != type) {
-                        throw new ScmException("Multiple branches with different types resolved for " + sha1);
-                    }
-
-                    // If a branch type is a versioned branch, there can be only one branch type matching that version.
-                    if (GitBranchType.UNIQUELY_VERSIONED_TYPES.contains(candidateType)) {
-                        throw new ScmException("Multiple branches of different type reference the same release version for " + sha1);
-                    }
+                ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
+                if (!GitScmProviderRepository.PROTOCOL_GIT.equals(scmManager.getProviderByRepository(repository).getScmType())) {
+                    throw new ScmException("Unable to resolve branches from non-git <scm> definitions.");
                 }
 
-                // Detached head resolution was successful.
-                // Either we iterated once, or all of the subsequent types were resolved to the same type as the
-                // first branch, and there was only one of those branches which may have been a uniquely versioned branch.
-                branchNameOrExpression = name;
+                // We know it's a GIT repo...
+                GitScmProviderRepository gitScmProviderRepository = (GitScmProviderRepository) repository.getProviderRepository();
+
+                ScmFileSet fileSet = new ScmFileSet(project.getBasedir());
+                ScmLogDispatcher scmLogger = new ScmLogDispatcher();
+
+                sha1 = sha1ForHEAD(scmLogger, fileSet);
+                log.debug("HEAD is pointing at " + sha1);
+
+                try {
+                    branchNameOrExpression = GitBranchCommand.getCurrentBranch(scmLogger, gitScmProviderRepository, fileSet);
+                } catch (ScmException scme) {
+                    log.debug("Exception attempting to resolve a local branch. Attempting detached HEAD resolution");
+
+                    // Try to resolve a detached HEAD to a single branch.
+                    // If we have more than one branch resolving, make sure they're the same type.
+                    // If there are more than one _type_ of branch resolved for the detached HEAD, then we'll need to
+                    // fall back to the branchNameOrExpression (to resolve via environment properties).
+
+                    // Do a rev-parse to get the commit hash that HEAD points to
+                    log.debug("HEAD is pointing at " + sha1);
+
+                    // Now use show-ref to determine the branches that HEAD's sha1 points to.
+                    Set<String> branches = branchesForSha1(sha1, scmLogger, fileSet);
+                    log.debug("Found the following branches for " + sha1 + ": " + branches);
+
+                    // State tracking as we loop
+                    GitBranchType type = null;
+                    String name = null;
+
+                    for (String candidateName : branches) {
+                        GitBranchType candidateType = resolveBranchType(candidateName, sha1).getType();
+                        // First iteration of a resolved type.
+                        if (type == null) {
+                            type = candidateType;
+                            name = candidateName; // Use the first name we get.
+                            continue;
+                        }
+
+                        // A subsequent branch which resolved.
+                        if (candidateType != type) {
+                            throw new ScmException("Multiple branches with different types resolved for " + sha1);
+                        }
+
+                        // If a branch type is a versioned branch, there can be only one branch type matching that version.
+                        if (GitBranchType.UNIQUELY_VERSIONED_TYPES.contains(candidateType)) {
+                            throw new ScmException("Multiple branches of different type reference the same release version for " + sha1);
+                        }
+                    }
+
+                    // Detached head resolution was successful.
+                    // Either we iterated once, or all of the subsequent types were resolved to the same type as the
+                    // first branch, and there was only one of those branches which may have been a uniquely versioned branch.
+                    branchNameOrExpression = name;
+                }
+            } catch (ScmException scme) {
+                // Only do the following if the SCM resolution fails miserably.
+                log.warn("Unable to resolve a branch from SCM. Falling back to property replacement.", scme);
+            } catch (IllegalArgumentException iae) {
+                log.debug("IllegalArgumentException likely the result of the <scm> block missing from the pom.xml", iae);
             }
-        } catch (ScmException scme) {
-            // Only do the following if the SCM resolution fails miserably.
-            log.warn("Unable to resolve a branch from SCM. Falling back to property replacement.", scme);
-        } catch (IllegalArgumentException iae) {
-            log.debug("IllegalArgumentException likely the result of the <scm> block missing from the pom.xml", iae);
-        }
 
         // Make sure we have a non-null value. (may have been passed in from the @Parameter)
         if (branchNameOrExpression == null) {
@@ -181,24 +184,24 @@ class ScmUtils {
             resolvedBranchName = null; // Force it to resolve as UNDEFINED.
         }
 
-        return resolveBranchType(resolvedBranchName);
+        return resolveBranchType(resolvedBranchName, sha1);
     }
 
-    private GitBranchInfo resolveBranchType(String branchName) {
+    private GitBranchInfo resolveBranchType(String branchName, String sha) {
         if (branchName == null || branchName.equals("") || branchName.equals(DEFAULT_BRANCH_EXPRESSION)) {
-            return new GitBranchInfo("", GitBranchType.UNDEFINED, null); // Force UNDEFINED to be "" for the name.
+            return new GitBranchInfo("", GitBranchType.UNDEFINED, null, sha); // Force UNDEFINED to be "" for the name.
         } else if (branchName.matches(masterBranchPattern)) {
-            return new GitBranchInfo(branchName, GitBranchType.MASTER, masterBranchPattern);
+            return new GitBranchInfo(branchName, GitBranchType.MASTER, masterBranchPattern, sha);
         } else if (branchName.matches(supportBranchPattern)) {
-            return new GitBranchInfo(branchName, GitBranchType.SUPPORT, supportBranchPattern);
+            return new GitBranchInfo(branchName, GitBranchType.SUPPORT, supportBranchPattern, sha);
         } else if (branchName.matches(releaseBranchPattern)) {
-            return new GitBranchInfo(branchName, GitBranchType.RELEASE, releaseBranchPattern);
+            return new GitBranchInfo(branchName, GitBranchType.RELEASE, releaseBranchPattern, sha);
         } else if (branchName.matches(hotfixBranchPattern)) {
-            return new GitBranchInfo(branchName, GitBranchType.HOTFIX, hotfixBranchPattern);
+            return new GitBranchInfo(branchName, GitBranchType.HOTFIX, hotfixBranchPattern, sha);
         } else if (branchName.matches(developmentBranchPattern)) {
-            return new GitBranchInfo(branchName, GitBranchType.DEVELOPMENT, developmentBranchPattern);
+            return new GitBranchInfo(branchName, GitBranchType.DEVELOPMENT, developmentBranchPattern, sha);
         } else {
-            return new GitBranchInfo(branchName, GitBranchType.OTHER, null);
+            return new GitBranchInfo(branchName, GitBranchType.OTHER, null, sha);
         }
     }
 

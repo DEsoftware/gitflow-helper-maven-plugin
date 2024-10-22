@@ -184,6 +184,18 @@ The following properties are set:
 
 * `branchType`: The type of the branch
 * `branchName`: The name of the branch
+* `commitId`: SHA-1 of the commit of the HEAD of the branch
+* `commitIdShort`: Short SHA-1 of the commit of the HEAD of the branch
+
+The following properties change the behavior of this goal:
+
+| Property              | Default Value | Description                                                                                                                                                                                                        |
+|-----------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| branchTypeProperty    | branchType    | Name of the Maven property where the branch type is stored.                                                                                                                                                        |   
+| branchNameProperty    | branchName    | Name of the Maven property where the branch name is stored.                                                                                                                                                        |
+| commitIdProperty      | commitId      | Name of the Maven property where the commit ID (SHA-1) of the HEAD of the branch is stored.                                                                                                                        |
+| commitIdShortProperty | commitIdShort | Name of the Maven property where the short commit ID (SHA-1) of the HEAD of the branch is stored. The short commit ID contains the first n-characters of the commit ID (n can be defined in `commitIdShortLength`) |
+| commitIdShortLength   | 8             | Length of the short commit ID.                                                                                                                                                                                     |
 
 ### Mapping Git branch name
 
@@ -452,6 +464,41 @@ With the build extension added to your project, any build where the `gitBranchEx
 build lifecycle (plugins, goals, etc) altered. Any plugin other than the gitflow-helper-maven-plugin, the maven-deploy-plugin, plugins with goals
  explicitly referenced on the command line or those configured explicitly in the `retainPlugins` list, will be ignored (removed from the project reactor). 
 This allows us to enforce the ideal that code should never be built in the master branch.
+
+Elements of the `retainPlugins` can address a complete Maven plugin (format `<groupId>:<artifactId>`) or a single execution (format `<groupId>:<artifactId>@<executionId>`).
+
+#### Example:
+
+```xml
+<plugins>
+    <plugin>
+        <groupId>com.e-gineering</groupId>
+        <artifactId>gitflow-helper-maven-plugin</artifactId>
+        <configuration>
+            <retainPlugins>
+                <!-- Execute the do-on-master execution of the maven-antrun-plugin on the master build -->
+                <retainPlugin>org.apache.maven.plugins:maven-antrun-plugin@do-on-master</retainPlugin>
+            </retainPlugins>
+        </configuration>
+    </plugin>
+    
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>do-on-master</id>
+                <goals>
+                    <goal>run</goal>
+                </goals>
+                <phase>deploy</phase>
+            </execution>
+            <configuration>
+            </configuration>
+        </executions>
+    </plugin>
+</plugins>
+```
 
 The `promote-master` goal executes when the `gitBranchExpression` resolves to a value matching the `masterBranchPattern` or `supportBranchPattern` regular expression.
  
